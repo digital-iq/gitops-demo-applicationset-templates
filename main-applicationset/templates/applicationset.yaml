@@ -1,0 +1,63 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+{{- if .Values.appSetEnv }}
+  name: {{ .Values.helmChartName }}-{{ .Values.appSetEnv }}
+{{- else }}
+  name: {{ .Values.helmChartName }}
+{{- end }}
+  namespace: {{ .Values.argoCDNamespace }}
+spec:
+{{- if .Values.generatorsList }}
+  generators:
+{{ .Values.generatorsList | toYaml |indent 4 }}
+{{- else }}
+{{- fail "value generatorsList is mandatory, please add the attributes to the values.yaml file in applicationset helm directory" }}
+{{- end }}
+  syncPolicy:
+{{- if .Values.preserveResourcesOnDeletion }}
+    preserveResourcesOnDeletion: true
+{{- end }}
+  template:
+    metadata:
+      name: {{ .Values.app_name }}-{{ "{{" }}name{{ "}}" }}
+    spec:
+      project: default
+      revisionHistoryLimit: 5
+{{- if .Values.ignoreDifferences }}
+      ignoreDifferences:
+{{ .Values.ignoreDifferences | toYaml |indent 8 }}
+{{- end }}
+      source:
+        helm:
+          {{- if .Values.passCredentials }}
+          passCredentials: true
+          {{- end }}
+          releaseName: {{ .Values.helmChartName }}
+          valuesFiles:
+          - helm-{{ .Values.helmChartName }}/values.yaml
+{{- if .Values.valuesList }}
+{{ .Values.valuesList | toYaml | indent 10 }}
+{{- end }}
+{{- if .Values.repoURL }}
+        repoURL: {{ .Values.repoURL }}
+{{- else }}
+{{- fail "value repoURL is mandatory, please add the attributes to the values.yaml file in applicationset helm directory"}}
+{{- end }}
+{{- if .Values.revision }}
+        targetRevision: '{{ .Values.revision }}'
+{{- else }}
+{{- fail "value revision is mandatory, please add the attributes to the values.yaml file in applicationset helm directory"}}
+{{- end }}
+        path: {{ .Values.app_name }}
+      destination:
+        server: '{{ "{{" }}server{{ "}}" }}'
+{{- if .Values.namespaceDestination }}
+        namespace: {{ .Values.namespaceDestination }}
+{{- end }}
+      syncPolicy:
+{{- if .Values.syncPolicyList }}
+{{ .Values.syncPolicyList | toYaml |indent 8 }}
+{{- else }}
+{{- fail "value syncPolicyList is mandatory, please add the attributes to the values.yaml file in applicationset helm directory"}}
+{{- end }}

@@ -1,0 +1,25 @@
+repoURL: ""
+appSetEnv: ""
+helmChartName: "main-applicationset"
+argoCDNamespace: ""
+generatorsList:
+- clusters:
+    selector:
+      matchLabels:
+        kf-env: ''
+        type: ""
+    values:
+      text: ""
+      backgroundColor: ""
+      textColor: ""
+app_name: ""
+revision: ""
+syncPolicyList:
+  retry:
+    limit: -1
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+  - ApplyOutOfSyncOnly=true
+  - PruneLast=true
